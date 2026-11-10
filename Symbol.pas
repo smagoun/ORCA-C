@@ -3010,35 +3010,37 @@ if needSymbol then begin
       hashPtr^ := p;
       end; {if}
    end; {if}
-if space = fieldListSpace then          {check and set the storage class}
-   p^.storage := none
-else if class in [autosy,registersy] then
-   begin
-   if doingFunction or doingParameters then begin
-      p^.storage := stackFrame;
-      class := ident;
+if needSymbol or (state <> declared) then begin
+   if space = fieldListSpace then       {check and set the storage class}
+      p^.storage := none
+   else if class in [autosy,registersy] then
+      begin
+      if doingFunction or doingParameters then begin
+         p^.storage := stackFrame;
+         class := ident;
+         end {if}
+      else begin
+         p^.storage := global;
+         Error(62);
+         end; {else}
       end {if}
-   else begin
-      p^.storage := global;
-      Error(62);
-      end; {else}
-   end {if}
-else if class = ident then begin
-   if doingFunction then begin
-      p^.storage := stackFrame;
-      class := autosy;
-      end {if}
+   else if class = ident then begin
+      if doingFunction then begin
+         p^.storage := stackFrame;
+         class := autosy;
+         end {if}
+      else
+         p^.storage := global;
+      end {else if}
+   else if class = externsy then begin
+      p^.storage := external;
+      p^.inlineDefinition := isInline;
+      end {else if}
+   else if class = staticsy then
+      p^.storage := private
    else
-      p^.storage := global;
-   end {else if}
-else if class = externsy then begin
-   p^.storage := external;
-   p^.inlineDefinition := isInline;
-   end {else if}
-else if class = staticsy then
-   p^.storage := private
-else
-   p^.storage := none;
+      p^.storage := none;
+end; {if}
 p^.class := class;
 p^.itype := itype;                      {set the symbol field values}
 NewSymbol := p;                         {return a pointer to the new entry}
